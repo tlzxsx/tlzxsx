@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>铜梁中学校随机点名系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://q5.itc.cn/images01/20240523/42a71359ef834010bff455ab601a9f21.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .name-display {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #name {
+            font-size: 3em;
+            color: #2c3e50;
+            font-weight: bold;
+            animation: glow 1s infinite alternate;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+
+        #startBtn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        #startBtn.stopped {
+            background: #f44336;
+        }
+
+        #resetBtn {
+            background: #2196F3;
+            color: white;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+                transform: scale(1);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(76, 175, 80, 1);
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #name {
+                font-size: 2em;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 1em;
+                min-width: 120px;
+            }
+
+            .name-display {
+                padding: 30px 15px;
+                min-height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: white; margin-bottom: 30px;">铜梁中学校随机点名系统</h1>
+        
+        <div class="name-display">
+            <div id="name">点击开始按钮挑选幸运儿</div>
+        </div>
+
+        <div class="buttons">
+            <button id="startBtn" onclick="toggleRoll()">开始</button>
+            <button id="resetBtn" onclick="resetAll()">重置</button>
+        </div>
+    </div>
+
+    <script>
+        const students = [
+            '蔡小蝶', '陈思含', '陈欣瑞', '陈彦妙', '崔冉苏',
+            '邓丰君', '高希望', '高梓杰', '郭秋旭', '黄鑫',
+            '雷博文', '李宜', '李悦', '梁涛', '刘家彤',
+            '罗苗丰', '邱可欣', '冉璐瑶', '唐小媛', '唐艺芸',
+            '唐子真', '田裕洁', '王家宏', '王丽茜', '杨宜墨',
+            '杨梓艺', '叶禹希', '余金蓬', '张艺馨', '郑钦文',
+            '周晨乐', '周钦', '周毓彤', '周梓萌', '邹梦楚'
+        ];
+
+        let isRolling = false;
+        let intervalId = null;
+        let remainingStudents = [...students];
+        const nameElement = document.getElementById('name');
+        const startBtn = document.getElementById('startBtn');
+
+        function toggleRoll() {
+            if (!isRolling) {
+                // 开始点名
+                if (remainingStudents.length === 0) {
+                    alert('所有学生都已点名完毕！');
+                    return;
+                }
+                isRolling = true;
+                startBtn.textContent = '停止';
+                startBtn.classList.add('stopped');
+                intervalId = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * remainingStudents.length);
+                    nameElement.textContent = remainingStudents[randomIndex];
+                    nameElement.style.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                }, 50);
+            } else {
+                // 停止点名
+                isRolling = false;
+                startBtn.textContent = '开始';
+                startBtn.classList.remove('stopped');
+                clearInterval(intervalId);
+                // 移除已点名的学生
+                const selectedName = nameElement.textContent;
+                remainingStudents = remainingStudents.filter(name => name !== selectedName);
+            }
+        }
+
+        function resetAll() {
+            isRolling = false;
+            clearInterval(intervalId);
+            remainingStudents = [...students];
+            nameElement.textContent = '点击开始按钮挑选幸运儿';
+            nameElement.style.color = '#2c3e50';
+            startBtn.textContent = '开始';
+            startBtn.classList.remove('stopped');
+        }
+    </script>
+</body>
+</html>

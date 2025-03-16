@@ -1,13 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <title>铜中数学</title>
+    <style>
+        /* 全局样式 */
+        body {
+            margin: 0;
+            padding: 20px;
+            background: url('https://q5.itc.cn/images01/20240523/42a71359ef834010bff455ab601a9f21.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 半透明遮罩提升可读性 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.88);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 40px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-size: 28px;
+        }
+
+        .tool-links ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tool-links li {
+            margin: 18px 0;
+            transition: transform 0.2s;
+        }
+
+        .tool-links a {
+            display: block;
+            padding: 18px;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .tool-links a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+                margin: 30px 0;
+            }
+            .tool-links a {
+                font-size: 16px;
+                padding: 15px;
+            }
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>铜中数学</h1>
+        <nav class="tool-links">
+            <ul>
+                <li><a href="sjdm.html">随机点名器</a></li>
+                <li><a href="shudyx.html">数独竞技场</a></li>
+                <li><a href="sxmy.html">数学谜语阁</a></li>
+                <li><a href="djs.html">高考倒计时</a></li>
+            </ul>
+        </nav>
+    </div>
+</body>
 </html>

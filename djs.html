@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>铜梁中学倒计时器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://q5.itc.cn/images01/20240523/42a71359ef834010bff455ab601a9f21.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .time-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        #timer {
+            font-size: 3em;
+            color: #e74c3c;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            background: #4CAF50;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #resetBtn {
+            background: #f44336;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            input {
+                width: 60px;
+                font-size: 1em;
+            }
+
+            #timer {
+                font-size: 2em;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>铜梁中学倒计时器</h1>
+        <div class="time-input">
+            <input type="number" id="hours" placeholder="时" min="0" value="0">
+            <input type="number" id="minutes" placeholder="分" min="0" value="10">
+            <input type="number" id="seconds" placeholder="秒" min="0" value="0">
+        </div>
+        <div id="timer">00:10:00</div>
+        <div class="buttons">
+            <button id="startBtn" onclick="toggleTimer()">开始</button>
+            <button id="resetBtn" onclick="resetTimer()">重置</button>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let totalSeconds = 0;
+        let isRunning = false;
+        let warningPlayed = false;
+        const synth = window.speechSynthesis;
+        let audioContext;
+        let oscillator;
+
+        function createBeep() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.stop();
+            }, 100);
+        }
+
+        function updateDisplay() {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            document.getElementById('timer').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (totalSeconds === 60 && !warningPlayed) {
+                speak("距离结束仅剩1分钟");
+                warningPlayed = true;
+            }
+            
+            if (totalSeconds <= 5 && totalSeconds > 0) {
+                createBeep();
+            }
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            synth.speak(utterance);
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                const hours = parseInt(document.getElementById('hours').value) || 0;
+                const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                const seconds = parseInt(document.getElementById('seconds').value) || 0;
+                totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                
+                if (totalSeconds <= 0) {
+                    alert("请设置有效时间！");
+                    return;
+                }
+                
+                warningPlayed = false;
+                isRunning = true;
+                document.getElementById('startBtn').textContent = '暂停';
+                timer = setInterval(() => {
+                    totalSeconds--;
+                    updateDisplay();
+                    if (totalSeconds <= 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        document.getElementById('startBtn').textContent = '开始';
+                        speak("时间到！");
+                        setTimeout(resetTimer, 2000);
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                document.getElementById('startBtn').textContent = '继续';
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            warningPlayed = false;
+            document.getElementById('startBtn').textContent = '开始';
+            document.getElementById('hours').value = 0;
+            document.getElementById('minutes').value = 10;
+            document.getElementById('seconds').value = 0;
+            totalSeconds = 10 * 60;
+            updateDisplay();
+            
+            if (oscillator) {
+                oscillator.stop();
+            }
+        }
+
+        document.addEventListener('click', () => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }, { once: true });
+
+        resetTimer();
+    </script>
+</body>
+</html>

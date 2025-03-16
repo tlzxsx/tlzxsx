@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新春猜谜大会</title>
+    <style>
+        :root {
+            --red: #e74c3c;
+            --gold: #f1c40f;
+            --bg: linear-gradient(45deg, #ff6b6b, #ff8f8f);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: '楷体', cursive;
+            min-height: 100vh;
+            background: var(--bg);
+            color: #2c3e50;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .game-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--red);
+            margin: 20px 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .question {
+            font-size: 1.4em;
+            margin: 25px 0;
+            line-height: 1.8;
+        }
+
+        .hint {
+            color: var(--red);
+            font-size: 0.9em;
+            margin: 15px 0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 25px 0;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 15px;
+            border: 3px solid var(--gold);
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: transform 0.2s;
+            flex: 1;
+        }
+
+        button.secondary {
+            background: #3498db;
+        }
+
+        .correct-message {
+            color: #2ecc71;
+            font-size: 1.4em;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            animation: explode 1s ease-out;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(20); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .game-box {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .question {
+                font-size: 1.2em;
+            }
+
+            input, button {
+                font-size: 1em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏮 新春猜谜大会 🏮</h1>
+        <div class="game-box">
+            <div class="question" id="question"></div>
+            <div class="hint" id="hint"></div>
+            <div class="correct-message" id="correctMessage">🎉 恭喜，回答正确！</div>
+            
+            <div class="input-group">
+                <input type="text" id="answer" placeholder="输入谜底" autocomplete="off">
+                <div class="button-group">
+                    <button onclick="checkAnswer()" id="submitBtn">提交答案</button>
+                    <button class="secondary" onclick="showNextRiddle()" id="skipBtn" style="display: none;">跳过这道题</button>
+                    <button class="secondary" onclick="retryQuestion()" id="retryBtn" style="display: none;">再试一次</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const riddles = [
+            { q: "五个兄弟，住在一起，名字不同，高矮不齐。", a: "手指", hint: "身体部位" },
+            { q: "有面没有口，有脚没有手，虽有四只脚，自己不会走。", a: "桌子", hint: "家具" },
+            { q: "白嫩小宝宝，洗澡吹泡泡，洗洗身体小，再洗不见了。", a: "肥皂", hint: "日用品" },
+            { q: "屋子方方，有门没窗，屋外热烘，屋里冰霜。", a: "冰箱", hint: "家电" },
+            { q: "身穿绿衣裳，肚里水汪汪，生的子儿多，个个黑脸膛。", a: "西瓜", hint: "水果" },
+            { q: "头戴红帽子，身披五彩衣，从来不唱戏，喜欢吊嗓子。", a: "公鸡", hint: "动物" },
+            { q: "有头没有颈，身上冷冰冰，有翅不能飞，无脚也能行。", a: "鱼", hint: "水生动物" },
+            { q: "像熊比熊小，像猫比猫大，竹笋是食粮，密林中安家。", a: "熊猫", hint: "国宝动物" },
+            { q: "红口袋，绿口袋，有人怕，有人爱。", a: "辣椒", hint: "蔬菜" },
+            { q: "圆圆像个瓜，人们爱玩它，没到手抢它，抢到手丢它。", a: "篮球", hint: "运动器材" },
+            { q: "人有我大，天没我大。", hint: "打一字", a: "一"},
+            { q:"婚姻法。",hint:"打一数学名词",a:"结合律"},
+            { q:"天有地没有，工有农没有。",hint:"打一字",a:"二"},
+            { q:"你盼着我，我盼着你。",hint:"打一数学名词",a:"相等"},
+            { q:"舌头。",hint:"打一数字",a:"千"},
+            { q:"灭火。",hint:"打一数字",a:"一"},
+            { q:"其中。",hint:"打一数字",a:"二"},
+            { q:"一来就干。",hint:"打一数字",a:"十"},
+            { q:"员。",hint:"打一数学名词",a:"圆心"},
+            { q:"北。",hint:"打一数学名词",a:"反比"},
+            { q:"十。",hint:"打一数学名词",a:"指数"},
+            { q:"春夏秋冬。",hint:"打一数学名词",a:"周期"},
+            { q:"停战谈判",hint:"打两个数学名词",a:"商、和"},
+            { q:"市场无人无货。",hint:"打一数学名词",a:"空集"}
+        ];
+
+        let remainingRiddles = [...riddles];
+        let currentRiddle;
+
+        function initGame() {
+            remainingRiddles = [...riddles];
+            remainingRiddles.sort(() => Math.random() - 0.5);
+            showNextRiddle();
+        }
+
+        function showNextRiddle() {
+            resetUI();
+            if (remainingRiddles.length === 0) {
+                document.getElementById('question').textContent = "🎉 所有谜题已完成！";
+                document.getElementById('hint').textContent = "";
+                document.getElementById('answer').style.display = 'none';
+                document.querySelector('.button-group').style.display = 'none';
+                return;
+            }
+            
+            currentRiddle = remainingRiddles.pop();
+            document.getElementById('question').textContent = currentRiddle.q;
+            document.getElementById('hint').textContent = "提示：" + currentRiddle.hint;
+            document.getElementById('answer').value = '';
+            document.getElementById('answer').focus();
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+            
+            if (userAnswer === currentRiddle.a) {
+                showCorrect();
+            } else {
+                showError();
+            }
+        }
+
+        function showCorrect() {
+            document.getElementById('correctMessage').style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('answer').style.display = 'none';
+            createFirework();
+            setTimeout(showNextRiddle, 3000);
+        }
+
+        function showError() {
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('retryBtn').style.display = 'inline-block';
+            document.getElementById('skipBtn').style.display = 'inline-block';
+        }
+
+        function retryQuestion() {
+            document.getElementById('submitBtn').style.display = 'inline-block';
+            document.getElementById('retryBtn').style.display = 'none';
+            document.getElementById('skipBtn').style.display = 'none';
+            document.getElementById('answer').focus();
+        }
+
+        function resetUI() {
+            document.getElementById('correctMessage').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'inline-block';
+            document.getElementById('retryBtn').style.display = 'none';
+            document.getElementById('skipBtn').style.display = 'none';
+            document.getElementById('answer').style.display = 'block';
+        }
+
+        function createFirework() {
+            for(let i = 0; i < 20; i++) {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = Math.random() * 100 + '%';
+                firework.style.top = Math.random() * 100 + '%';
+                firework.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+                document.body.appendChild(firework);
+                
+                setTimeout(() => firework.remove(), 1000);
+            }
+        }
+
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
