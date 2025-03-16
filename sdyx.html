@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>铜中数学数独游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://q5.itc.cn/images01/20240523/42a71359ef834010bff455ab601a9f21.jpeg'); /* 替换为实际校图地址 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 28px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #sudoku {
+            border-collapse: collapse;
+            background-color: rgba(255,255,255,0.95);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90vmin;
+            height: 90vmin;
+            max-width: 450px;
+            max-height: 450px;
+            margin: 0 auto;
+        }
+
+        td {
+            width: 11.11%;
+            height: 11.11%;
+            text-align: center;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 4vmin;
+            background-color: transparent;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        input:focus {
+            background-color: rgba(230, 243, 255, 0.5);
+            outline: none;
+        }
+
+        .border-right {
+            border-right: 2px solid #333 !important;
+        }
+
+        .border-bottom {
+            border-bottom: 2px solid #333 !important;
+        }
+
+        .fixed {
+            color: #34495e;
+            background-color: #f8f9fa;
+        }
+
+        .error {
+            background-color: rgba(255, 0, 0, 0.1) !important;
+        }
+
+        #timer {
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        #message {
+            margin: 10px 0;
+            color: #27ae60;
+            font-weight: bold;
+            text-align: center;
+            min-height: 24px;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 22px;
+            }
+            
+            button {
+                font-size: 14px;
+                padding: 10px;
+            }
+            
+            input {
+                font-size: 5vmin;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>铜中数学数独游戏</h1>
+        <div class="controls">
+            <button onclick="newGame('easy')">容易</button>
+            <button onclick="newGame('medium')">中等</button>
+            <button onclick="newGame('hard')">困难</button>
+            <button onclick="checkSolution()">检查答案</button>
+        </div>
+        <div id="timer">时间: 00:00</div>
+        <table id="sudoku"></table>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let solution = [];
+        let puzzle = [];
+        let startTime;
+        let timerInterval;
+        const difficulties = {
+            easy: 45,
+            medium: 35,
+            hard: 25
+        };
+
+        function newGame(difficulty) {
+            clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            [solution, puzzle] = generateSudoku(difficulties[difficulty]);
+            renderSudoku();
+            document.getElementById("message").textContent = "";
+        }
+
+        function generateSudoku(numbersToKeep) {
+            const answer = generateCompleteSudoku();
+            let currentPuzzle = answer.map(row => [...row]);
+            let positions = [];
+            
+            for(let i = 0; i < 9; i++) {
+                for(let j = 0; j < 9; j++) {
+                    positions.push([i, j]);
+                }
+            }
+            positions = shuffle(positions);
+            
+            for(let k = numbersToKeep; k < positions.length; k++) {
+                const [i, j] = positions[k];
+                currentPuzzle[i][j] = 0;
+            }
+            return [answer, currentPuzzle];
+        }
+
+        function generateCompleteSudoku() {
+            let grid = Array(9).fill().map(() => Array(9).fill(0));
+            fillGrid(grid);
+            return grid;
+        }
+
+        function fillGrid(grid) {
+            let empty = findEmptyCell(grid);
+            if(!empty) return true;
+            let [row, col] = empty;
+
+            let numbers = shuffle([1,2,3,4,5,6,7,8,9]);
+            for(let num of numbers) {
+                if(isValid(grid, row, col, num)) {
+                    grid[row][col] = num;
+                    if(fillGrid(grid)) return true;
+                    grid[row][col] = 0;
+                }
+            }
+            return false;
+        }
+
+        function isValid(grid, row, col, num) {
+            // 行检查
+            if(grid[row].includes(num)) return false;
+            // 列检查
+            for(let i = 0; i < 9; i++) {
+                if(grid[i][col] === num) return false;
+            }
+            // 宫检查
+            const startRow = Math.floor(row / 3) * 3;
+            const startCol = Math.floor(col / 3) * 3;
+            for(let i = 0; i < 3; i++) {
+                for(let j = 0; j < 3; j++) {
+                    if(grid[startRow + i][startCol + j] === num) return false;
+                }
+            }
+            return true;
+        }
+
+        function renderSudoku() {
+            let table = document.getElementById("sudoku");
+            table.innerHTML = "";
+            
+            for(let i = 0; i < 9; i++) {
+                let tr = document.createElement("tr");
+                for(let j = 0; j < 9; j++) {
+                    let td = document.createElement("td");
+                    if(puzzle[i][j] !== 0) {
+                        td.textContent = puzzle[i][j];
+                        td.classList.add("fixed");
+                    } else {
+                        let input = document.createElement("input");
+                        input.maxLength = 1;
+                        input.oninput = function(e) {
+                            this.value = this.value.replace(/[^1-9]/g, '');
+                            validateCell(this, i, j);
+                        };
+                        td.appendChild(input);
+                    }
+                    td.className = getCellClass(i, j);
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+
+        function validateCell(input, row, col) {
+            const value = parseInt(input.value);
+            input.parentElement.classList.toggle("error", value !== solution[row][col]);
+            checkWin();
+        }
+
+        function checkWin() {
+            let inputs = document.querySelectorAll("input");
+            for(let input of inputs) {
+                const row = input.parentNode.parentNode.rowIndex;
+                const col = input.parentNode.cellIndex;
+                if(!input.value || parseInt(input.value) !== solution[row][col]) {
+                    return false;
+                }
+            }
+            clearInterval(timerInterval);
+            document.getElementById("message").textContent = "🎉 挑战成功！铜中为你骄傲！";
+            return true;
+        }
+
+        function checkSolution() {
+            if(!checkWin()) {
+                document.getElementById("message").textContent = "💡 继续加油，检查后再试！";
+            }
+        }
+
+        function getCellClass(row, col) {
+            let classes = [];
+            if(col === 2 || col === 5) classes.push("border-right");
+            if(row === 2 || row === 5) classes.push("border-bottom");
+            return classes.join(" ");
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById("timer").textContent = `时间: ${minutes}:${seconds}`;
+        }
+
+        function findEmptyCell(grid) {
+            for(let i = 0; i < 9; i++) {
+                for(let j = 0; j < 9; j++) {
+                    if(grid[i][j] === 0) return [i, j];
+                }
+            }
+            return null;
+        }
+
+        function shuffle(array) {
+            for(let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 初始化游戏
+        newGame('easy');
+    </script>
+</body>
+</html>
