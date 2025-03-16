@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>铜中数学</title>
     <style>
-        /* 全局样式 */
+        /* 全局样式（优化铜中校景展示） */
         body {
             margin: 0;
             padding: 20px;
@@ -15,7 +15,7 @@
             min-height: 100vh;
         }
 
-        /* 半透明遮罩提升可读性 */
+        /* 背景遮罩（适配学校红墙绿树色调） */
         body::before {
             content: '';
             position: fixed;
@@ -23,62 +23,76 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.6);
             z-index: -1;
         }
 
+        /* 主容器（校史馆橱窗风格） */
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            text-align: center;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.88);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 91, 143, 0.1);
+            backdrop-filter: blur(4px);
         }
 
         h1 {
-            color: #2c3e50;
-            margin: 40px 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-            font-size: 28px;
+            color: #154c79; /* 校徽标准色 */
+            margin: 0 0 2rem 0;
+            font-size: 2.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+            letter-spacing: 1px;
         }
 
+        /* 导航按钮（仿校史馆展板设计） */
         .tool-links ul {
             list-style: none;
             padding: 0;
         }
 
         .tool-links li {
-            margin: 18px 0;
-            transition: transform 0.2s;
+            margin: 1.2rem 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tool-links a {
             display: block;
-            padding: 18px;
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.85);  /* 重点修改部分 */
+            backdrop-filter: blur(8px);
+            color: #2c3e50;  /* 深灰色文字 */
             text-decoration: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            font-size: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 91, 143, 0.15); /* 校徽蓝浅色边框 */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            font-size: 1.1em;
+            transition: all 0.3s ease;
         }
 
+        /* 悬停效果（模拟铜中龙舞飘动） */
         .tool-links a:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 91, 143, 0.25);
         }
 
-        /* 移动端优化 */
+        /* 移动端适配（智慧校园标准） */
         @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                margin: 1rem auto;
+                border-radius: 8px;
+            }
             h1 {
-                font-size: 24px;
-                margin: 30px 0;
+                font-size: 1.8em;
+                margin-bottom: 1.5rem;
             }
             .tool-links a {
-                font-size: 16px;
-                padding: 15px;
-            }
-            body {
-                padding: 15px;
+                padding: 1rem;
+                font-size: 1em;
             }
         }
     </style>
